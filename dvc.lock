@@ -1,0 +1,84 @@
+schema: '2.0'
+stages:
+  data_ingestion:
+    cmd: python -m src.data.dataingestion
+    deps:
+    - path: src/data/dataingestion.py
+      hash: md5
+      md5: 1e9488f322a47fc7f4c9f54d097f1161
+      size: 1008
+      isexec: true
+    outs:
+    - path: data/raw/people_segmentation
+      hash: md5
+      md5: dcafaa18fecada973c7ac661a6ed3556.dir
+      size: 489209570
+      nfiles: 11360
+  prepare_data:
+    cmd: python -m src.data.preprocess
+    deps:
+    - path: data/raw/people_segmentation
+      hash: md5
+      md5: dcafaa18fecada973c7ac661a6ed3556.dir
+      size: 489209570
+      nfiles: 11360
+    - path: src/data/preprocess.py
+      hash: md5
+      md5: 8a6c7a03929d8ba760a0863b377e4127
+      size: 2760
+      isexec: true
+    outs:
+    - path: data/processed/test
+      hash: md5
+      md5: 44c2a78386b729e36d4f7a666139c28d.dir
+      size: 231145070
+      nfiles: 1134
+    - path: data/processed/train
+      hash: md5
+      md5: 09ec1634edbaf45fa5e3f4cbccc7a88a.dir
+      size: 10946846405
+      nfiles: 61332
+  train:
+    cmd: python -m scripts.train
+    deps:
+    - path: configs/train.yaml
+      hash: md5
+      md5: 2cac3b631146b285596dd3466e601b87
+      size: 47
+      isexec: true
+    - path: data/processed/test
+      hash: md5
+      md5: 44c2a78386b729e36d4f7a666139c28d.dir
+      size: 231145070
+      nfiles: 1134
+    - path: data/processed/train
+      hash: md5
+      md5: 09ec1634edbaf45fa5e3f4cbccc7a88a.dir
+      size: 10946846405
+      nfiles: 61332
+    - path: scripts/train.py
+      hash: md5
+      md5: cd85ba60b9af8fc153e70ec8a126f722
+      size: 742
+      isexec: true
+    - path: src/model/deep3lab.py
+      hash: md5
+      md5: 6f961adce519d187fc75f317a427b361
+      size: 1168
+      isexec: true
+    - path: src/training/loss.py
+      hash: md5
+      md5: df83f959783ce79909cffc867f1af563
+      size: 854
+      isexec: true
+    - path: src/training/trainer.py
+      hash: md5
+      md5: eae8b1081d7ff70ac619801a15ade8f2
+      size: 1810
+      isexec: true
+    outs:
+    - path: artifacts/
+      hash: md5
+      md5: dfe70dae6e66da57868b4a73acc71bb6.dir
+      size: 216980766
+      nfiles: 11

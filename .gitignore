@@ -1,0 +1,15 @@
+.lightning_studio/
+*.pth
+*.pkl
+*h5
+logs/
+.windsurf-server
+.vscode-server
+.cursor-server
+__pycache__
+.triton
+*.pth
+.idea/
+.vscode/
+.keras
+/artifacts

@@ -1,0 +1,28 @@
+stages:
+  data_ingestion:
+    cmd: python -m src.data.dataingestion
+    deps:
+     - src/data/dataingestion.py
+    outs:
+      - data/raw/people_segmentation
+  prepare_data:
+    cmd: python -m src.data.preprocess
+    deps:
+      - src/data/preprocess.py
+      - data/raw/people_segmentation
+    outs:
+      - data/processed/train
+      - data/processed/test
+
+  train:
+    cmd: python -m scripts.train
+    deps:
+      - scripts/train.py
+      - src/training/trainer.py
+      - src/model/deep3lab.py
+      - src/training/loss.py
+      - data/processed/train
+      - data/processed/test
+      - configs/train.yaml
+    outs:
+      - artifacts/
