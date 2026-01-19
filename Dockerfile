@@ -21,7 +21,7 @@ COPY artifacts/ artifacts/
 # Copy scripts and root python files if any
 COPY app.py .
 COPY template.py .
-COPY test.py .
+
 
 # Initialize git for DVC
 RUN git init && \
@@ -37,8 +37,8 @@ RUN dvc remote modify dagshub auth basic
 
 RUN dvc remote modify dagshub --local user "${DAGSHUB_USER}" && \
     dvc remote modify dagshub --local password "${DAGSHUB_PASSWORD}" && \
-    dvc status checkpoint.pth.dvc && \
-    dvc pull checkpoint.pth.dvc -v
+    dvc status artifacts/best_model.h5 && \
+    dvc pull artifacts/best_model.h5 -v
 
 # Expose your app port (adjust if different)
 EXPOSE 8000

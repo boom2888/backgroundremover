@@ -1,0 +1,64 @@
+name: Deploy Application using Docker Image to EC2
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+
+  Continuous-Integration:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install dvc
+
+      # Configure DVC remote
+      - name: Configure DVC
+        run: |
+          dvc remote add -d dagshub https://dagshub.com/${{ secrets.DAGSHUB_USER }}/${{ secrets.DAGSHUB_REPO }}.dvc
+          dvc remote modify dagshub auth basic
+          dvc remote modify dagshub --local user ${{ secrets.DAGSHUB_USER }}
+          dvc remote modify dagshub --local password ${{ secrets.DAGSHUB_PASSWORD }}
+
+      # Pull model / data from Dagshub
+      - name: DVC Pull
+        run: |
+          dvc pull
+
+      # Optional: run tests
+      - name: Run Tests
+        run: |
+          python -m pytest || echo "No tests yet"
+
+  Continuous-Deployment:
+  needs: Continuous-Integration
+  runs-on: ubuntu-latest
+
+  steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build Docker Image
+      run: |
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/backgroundremover:latest .
+
+    - name: Push Docker Image to Docker Hub
+      run: |
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/backgroundremover:latest

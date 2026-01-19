@@ -4,11 +4,11 @@ import tensorflow as tf
 from PIL import Image
 import numpy as np
 import io
-
+from const.constants import model_path
 app = FastAPI()
 
 # Load Keras .h5 model
-model = tf.keras.models.load_model("artifacts/model.h5")
+model = tf.keras.models.load_model(model_path)
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):

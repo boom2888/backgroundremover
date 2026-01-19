@@ -1,0 +1,60 @@
+name: Train Model Pipeline
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "src/data/**"
+      - "src/training/**"
+      - "scripts/train.py"
+      - "configs/**"
+      - "data/**"
+      - "dvc.yaml"
+  
+
+jobs:
+  Train-Pipeline:
+    runs-on: self-hosted   # or ubuntu-latest if you want GitHub runner
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install dvc
+
+      # Configure DVC remote
+      - name: Configure DVC
+        run: |
+          dvc remote add -d dagshub https://dagshub.com/${{ secrets.DAGSHUB_USER }}/${{ secrets.DAGSHUB_REPO }}.dvc
+          dvc remote modify dagshub auth basic
+          dvc remote modify dagshub --local user ${{ secrets.DAGSHUB_USER }}
+          dvc remote modify dagshub --local password ${{ secrets.DAGSHUB_PASSWORD }}
+
+      # Pull existing cache (optional but speeds up)
+      - name: DVC Pull Cache
+        run: dvc pull || true
+
+      # Run full DVC pipeline
+      - name: Run Training Pipeline
+        run: dvc repro
+
+      # Push new artifacts to Dagshub
+      - name: DVC Push Artifacts
+        run: dvc push
+
+      # Commit updated dvc.lock if changed
+      - name: Commit dvc.lock if updated
+        run: |
+          git config user.email "ci@github.com"
+          git config user.name "GitHub CI"
+          git add dvc.lock
+          git commit -m "Auto-update dvc.lock after training" || echo "No changes to commit"
+          git push origin main
